@@ -1,0 +1,6 @@
+"calculator.obj",
+"cal.obj",
+"1602.obj",
+"ISD1760.obj" 
+TO "calculator" 
+DISABLEWARNING (16) 

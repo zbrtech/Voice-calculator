@@ -1,0 +1,318 @@
+C51 COMPILER V9.00   CAL                                                                   04/16/2014 09:36:54 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE CAL
+OBJECT MODULE PLACED IN cal.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE cal.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<calculate.h>
+   2          double code pows[]={0.000001,  0.00001,  0.0001 ,  0.001,
+   3                                          0.01 ,   0.1,       1,       10,   
+   4                                          100,    1000,     10000,    100000,
+   5                                          1000000,10000000,100000000,1000000000,
+   6                                          10000000000};
+   7          extern char code digit[];
+   8          extern void delay1ms(int n);
+   9          
+  10          
+  11          void dis_res(double res)//小数转字符,完善了负数显示功能，完善了没有小数，小数部分不显示。
+  12          { 
+  13   1              char s[20];
+  14   1              char nega_flag=-1;
+  15   1              char notallzero_flag=-1;
+  16   1              int num1;
+  17   1              size_t i=0;
+  18   1              int t=0;
+  19   1              long int_part=0;
+  20   1              long float_part=0;
+  21   1      
+  22   1              if(res<0)
+  23   1              {
+  24   2                      res=fabs(res);
+  25   2                      nega_flag=1;
+  26   2              }
+  27   1              int_part=(long)res; 
+  28   1              float_part=(long)((res-(float)int_part)*1000000);//
+  29   1              while(1)
+  30   1              {
+  31   2                      if(int_part>=pows[i+6])
+  32   2                      {
+  33   3                              i++;
+  34   3                      }
+  35   2                      else
+  36   2                      {
+  37   3                              break;
+  38   3                      }
+  39   2              }
+  40   1              num1=i;//num1=i-1;//存储整数部分的位数
+  41   1              for(i=1;i<=num1;i++)
+  42   1              {
+  43   2                      s[i-1]=(char)(int_part/(long)pows[6+num1-i])+'0';
+  44   2                      int_part=int_part%(long)pows[6+num1-i];
+  45   2              }
+  46   1              s[i-1]='.';//存储小数点
+  47   1              for(t=1;t<=6;t++)//小数点后显示的位数
+  48   1              {
+  49   2                      s[i-1+t]=(char)(float_part/(long)pows[12-t])+'0';
+  50   2                      float_part=float_part%(long)pows[12-t];
+  51   2                      if(s[i-1+t]!='0')//字符和字符相等的匹配，当初看成是和 0的匹配了
+  52   2                      {       
+  53   3                              notallzero_flag=1;
+  54   3                      }
+  55   2              }
+C51 COMPILER V9.00   CAL                                                                   04/16/2014 09:36:54 PAGE 2   
+
+  56   1              s[i-1+t]='\0';
+  57   1              if(nega_flag==1)
+  58   1              {
+  59   2                      write_dat('-');
+  60   2                      PlaySoundTick(10);
+  61   2                      delay1ms(1000);
+  62   2              }
+  63   1              if(notallzero_flag==1)
+  64   1              {
+  65   2                      for(i=0;i<strlen(s);i++)
+  66   2                      {
+  67   3                              write_dat(s[i]);
+  68   3                              switch (s[i])
+  69   3                              {
+  70   4                                      case '0':
+  71   4                                      PlaySoundTick(14);
+  72   4                                      break;
+  73   4                                      case '1':
+  74   4                                      PlaySoundTick(0);
+  75   4                                      break;
+  76   4                                      case '2':
+  77   4                                      PlaySoundTick(1);
+  78   4                                      break;
+  79   4                                      case '3':
+  80   4                                      PlaySoundTick(2);
+  81   4                                      break;
+  82   4                                      case '4':
+  83   4                                      PlaySoundTick(3);
+  84   4                                      break;
+  85   4                                      case '5':
+  86   4                                      PlaySoundTick(4);
+  87   4                                      break;
+  88   4                                      case '6':
+  89   4                                      PlaySoundTick(5);
+  90   4                                      break;
+  91   4                                      case '7':
+  92   4                                      PlaySoundTick(6);
+  93   4                                      break;
+  94   4                                      case '8':
+  95   4                                      PlaySoundTick(7);
+  96   4                                      break;
+  97   4                                      case '9':
+  98   4                                      PlaySoundTick(8);
+  99   4                                      break;
+ 100   4                                      case '.':
+ 101   4                                      PlaySoundTick(15);
+ 102   4                                      break;
+ 103   4                              }
+ 104   3                              delay1ms(1000);
+ 105   3                                      
+ 106   3                      }
+ 107   2              }
+ 108   1              else
+ 109   1              {
+ 110   2                      for(i=1;i<=num1;i++)
+ 111   2                      {
+ 112   3                              write_dat(s[i-1]);
+ 113   3                              switch (s[i-1])
+ 114   3                              {
+ 115   4                                      case '0':
+ 116   4                                      PlaySoundTick(14);
+ 117   4                                      break;
+C51 COMPILER V9.00   CAL                                                                   04/16/2014 09:36:54 PAGE 3   
+
+ 118   4                                      case '1':
+ 119   4                                      PlaySoundTick(0);
+ 120   4                                      break;
+ 121   4                                      case '2':
+ 122   4                                      PlaySoundTick(1);
+ 123   4                                      break;
+ 124   4                                      case '3':
+ 125   4                                      PlaySoundTick(2);
+ 126   4                                      break;
+ 127   4                                      case '4':
+ 128   4                                      PlaySoundTick(3);
+ 129   4                                      break;
+ 130   4                                      case '5':
+ 131   4                                      PlaySoundTick(4);
+ 132   4                                      break;
+ 133   4                                      case '6':
+ 134   4                                      PlaySoundTick(5);
+ 135   4                                      break;
+ 136   4                                      case '7':
+ 137   4                                      PlaySoundTick(6);
+ 138   4                                      break;
+ 139   4                                      case '8':
+ 140   4                                      PlaySoundTick(7);
+ 141   4                                      break;
+ 142   4                                      case '9':
+ 143   4                                      PlaySoundTick(8);
+ 144   4                                      break;
+ 145   4                                      case '.':
+ 146   4                                      PlaySoundTick(15);
+ 147   4                                      break;
+ 148   4                              
+ 149   4                              }
+ 150   3                              delay1ms(1000);
+ 151   3                      }
+ 152   2              }
+ 153   1      }
+ 154          double stod(char *s)
+ 155          { 
+ 156   1              char len=0,i=0;int dot=-1;//存储小数点的位置
+ 157   1              double Val=0;
+ 158   1              len=strlen(s)-1;//len这里可以看成是数组最大元素的下标
+ 159   1              for(i=0;i<=len;i++)
+ 160   1              {
+ 161   2                      if(s[i]=='.')
+ 162   2                      {       
+ 163   3                         dot=i;
+ 164   3                         i=0;
+ 165   3                         break;
+ 166   3                       }
+ 167   2                       
+ 168   2              }
+ 169   1              if(dot!=-1)//检测到小数点
+ 170   1              {       
+ 171   2                      for(i=0;i<dot;i++)
+ 172   2                      {
+ 173   3                              Val+=(double)(s[i]-'0')*pows[dot-i-1+6];
+ 174   3                      }
+ 175   2                      i++;
+ 176   2                      for(;i<=len;i++)
+ 177   2                      {
+ 178   3                              Val+=(double)(s[i]-'0')*pows[6+dot-i];
+ 179   3                      }
+C51 COMPILER V9.00   CAL                                                                   04/16/2014 09:36:54 PAGE 4   
+
+ 180   2              }
+ 181   1              else //输入的数没有小数点
+ 182   1              {
+ 183   2                      for(i=0;i<=len;i++)
+ 184   2                      {
+ 185   3                              Val+=(double)(s[i]-'0')*pows[len-i-1+7];//这里当初因为pow数组变化 所以下标要改变
+ 186   3                      }
+ 187   2              }
+ 188   1              return Val;
+ 189   1      }
+ 190          /*void play_result()
+ 191          {
+ 192                  int i=0;
+ 193                  int find_temp=0;
+ 194                  if(nega_flag==1)
+ 195                  {
+ 196                          PlaySoundTick(10);
+ 197                  }
+ 198                  if(notallzero_flag==1)
+ 199                  {
+ 200                          for(i=0;i<strlen(s);i++)
+ 201                          {
+ 202                                  switch (s[i])
+ 203                                  {
+ 204                                          case '0':
+ 205                                          PlaySoundTick(14);
+ 206                                          break;
+ 207                                          case '1':
+ 208                                          PlaySoundTick(0);
+ 209                                          break;
+ 210                                          case '2':
+ 211                                          PlaySoundTick(1);
+ 212                                          break;
+ 213                                          case '3':
+ 214                                          PlaySoundTick(2);
+ 215                                          break;
+ 216                                          case '4':
+ 217                                          PlaySoundTick(3);
+ 218                                          break;
+ 219                                          case '5':
+ 220                                          PlaySoundTick(4);
+ 221                                          break;
+ 222                                          case '6':
+ 223                                          PlaySoundTick(5);
+ 224                                          break;
+ 225                                          case '7':
+ 226                                          PlaySoundTick(6);
+ 227                                          break;
+ 228                                          case '8':
+ 229                                          PlaySoundTick(7);
+ 230                                          break;
+ 231                                          case '9':
+ 232                                          PlaySoundTick(8);
+ 233                                          break;
+ 234                                          case '.':
+ 235                                          PlaySoundTick(15);
+ 236                                  
+ 237                                  }
+ 238                                          delay1ms(500);
+ 239                          }
+ 240                  }
+ 241                  else
+C51 COMPILER V9.00   CAL                                                                   04/16/2014 09:36:54 PAGE 5   
+
+ 242                  {
+ 243                          for(i=1;i<=num1;i++)
+ 244                          {
+ 245                                  switch (s[i-1])
+ 246                                  {
+ 247                                          case '0':
+ 248                                          PlaySoundTick(14);
+ 249                                          break;
+ 250                                          case '1':
+ 251                                          PlaySoundTick(0);
+ 252                                          break;
+ 253                                          case '2':
+ 254                                          PlaySoundTick(1);
+ 255                                          break;
+ 256                                          case '3':
+ 257                                          PlaySoundTick(2);
+ 258                                          break;
+ 259                                          case '4':
+ 260                                          PlaySoundTick(3);
+ 261                                          break;
+ 262                                          case '5':
+ 263                                          PlaySoundTick(4);
+ 264                                          break;
+ 265                                          case '6':
+ 266                                          PlaySoundTick(5);
+ 267                                          break;
+ 268                                          case '7':
+ 269                                          PlaySoundTick(6);
+ 270                                          break;
+ 271                                          case '8':
+ 272                                          PlaySoundTick(7);
+ 273                                          break;
+ 274                                          case '9':
+ 275                                          PlaySoundTick(8);
+ 276                                          case '.':
+ 277                                          PlaySoundTick(15);
+ 278                                  
+ 279                                  }
+ 280                                          delay1ms(500);
+ 281                          
+ 282                   
+ 283                          }
+ 284                  }
+ 285          }*/
+ 286          
+ 287          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1535    ----
+   CONSTANT SIZE    =     68    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      51
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

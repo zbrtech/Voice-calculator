@@ -1,0 +1,346 @@
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE ISD1760
+OBJECT MODULE PLACED IN ISD1760.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE ISD1760.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"reg51.h"
+   2          #include "sound.h"
+   3          #include "ISD1700.H"
+   4          #define uchar unsigned char 
+   5          #define uint unsigned int
+   6          sbit ISD_SS=P2^4;
+   7          sbit ISD_MISO=P2^7;
+   8          sbit ISD_MOSI=P2^6;
+   9          sbit ISD_SCLK=P2^5;
+  10          /*sbit ISD_SS=P3^3;
+  11          sbit ISD_MISO=P3^0;
+  12          sbit ISD_MOSI=P3^1;
+  13          sbit ISD_SCLK=P3^2;     */
+  14          /*sbit ISD_SS=P2^7;
+  15          sbit ISD_MISO=P2^4;
+  16          sbit ISD_MOSI=P2^5;
+  17          sbit ISD_SCLK=P2^6;*/
+  18          void PlaySoundTick(uchar soundtick);
+  19          uchar data  comm_temp;
+  20          uchar data  ISD_COMM_RAM[7];
+  21          uchar data  ISD_COMM_RAM_C[7];
+  22          uchar data  *isd_comm_ptr;
+  23          uchar data  *back_data_ptr;
+  24          
+  25          // 函数声明
+  26          void  delay(int x);
+  27          void  comm_sate(void);
+  28          void  rest_isd_comm_ptr(void);
+  29          uchar T_R_comm_byte( uchar comm_data );
+  30          void isd1700_Npar_comm(uchar comm_par,comm_byte_count); //no parameter comm
+  31          void isd1700_par2_comm(uchar comm_par, uint data_par);
+  32          void isd1700_7byte_comm(uchar comm_par, uint star_addr, uint end_addr);
+  33          
+  34          void  spi_pu(void);
+  35          void  spi_stop(void);
+  36          void  spi_Rest( void );
+  37          void  spi_RD_play_ptr(void);
+  38          void  spi_RD_rec_ptr(void);
+  39          void  spi_devid(void);
+  40          void  spi_play(void);
+  41          void  spi_rec(void);
+  42          void  spi_erase(void);
+  43          void  spi_G_ERASE(void);
+  44          void  spi_fwd(void);
+  45          void  spi_wr_apc2(void);
+  46          void  spi_CurrRowAddr(void);
+  47          
+  48          void  seril_back_sate(uchar byte_number);
+  49          void  spi_set_opt(uchar spi_set_comm);
+  50          
+  51          
+  52          // 上位机通信接口函数
+  53          
+  54          
+  55                                    
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 2   
+
+  56          // 芯片上电
+  57          void spi_pu(void)
+  58          {  
+  59   1              ISD_SS=0;
+  60   1              isd1700_Npar_comm(ISD1700_PU,2);    
+  61   1              ISD_SS=1;
+  62   1      }
+  63          
+  64          // 停止当前
+  65          void spi_stop (void)
+  66          {  
+  67   1              ISD_SS=0;
+  68   1              isd1700_Npar_comm(ISD1700_STOP,2);     
+  69   1              ISD_SS=1;
+  70   1              ISD_COMM_RAM_C[0]=ISD1700_STOP ;
+  71   1              seril_back_sate(1);
+  72   1      }
+  73          
+  74          // 芯片复位
+  75          void spi_Rest(void)
+  76          {
+  77   1              ISD_SS=0;
+  78   1              isd1700_Npar_comm(ISD1700_REST,2);    
+  79   1              ISD_SS=1;
+  80   1      }
+  81          
+  82          // 当前地址
+  83          void  spi_CurrRowAddr(void)
+  84          {    
+  85   1              uchar i;
+  86   1              ISD_SS=0;
+  87   1              isd1700_Npar_comm(ISD1700_RD_STAUS,3); 
+  88   1              ISD_SS=1;
+  89   1              i=ISD_COMM_RAM_C[1];
+  90   1              ISD_COMM_RAM_C[1]=ISD_COMM_RAM_C[0]>>5|ISD_COMM_RAM_C[1]<<3;  
+  91   1              ISD_COMM_RAM_C[0]= i >>5;   
+  92   1              seril_back_sate(3);
+  93   1      }
+  94          
+  95          // 读播放地址
+  96          void spi_RD_play_ptr(void)
+  97          {    
+  98   1              uchar i;
+  99   1              ISD_SS=0;
+ 100   1              isd1700_Npar_comm(ISD1700_RD_PLAY_PTR,4);      
+ 101   1              ISD_SS=1;                       
+ 102   1              i=ISD_COMM_RAM_C[3]&0x03;               
+ 103   1              ISD_COMM_RAM_C[3]=ISD_COMM_RAM_C[2];    
+ 104   1              ISD_COMM_RAM_C[2]=i;
+ 105   1              seril_back_sate(4);
+ 106   1      }
+ 107          
+ 108          // 读录音地址
+ 109          void  spi_RD_rec_ptr(void)
+ 110          {    
+ 111   1              uchar i;
+ 112   1              ISD_SS=0;
+ 113   1              isd1700_Npar_comm(ISD1700_RD_REC_PTR,4);      
+ 114   1              ISD_SS=1;
+ 115   1              i=ISD_COMM_RAM_C[3]&0x03;                 
+ 116   1              ISD_COMM_RAM_C[3]=ISD_COMM_RAM_C[2]; 
+ 117   1              ISD_COMM_RAM_C[2]=i;
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 3   
+
+ 118   1              seril_back_sate(4);
+ 119   1      }
+ 120          
+ 121          // 读器件ID
+ 122          void spi_devid(void)
+ 123          {
+ 124   1              ISD_SS=0;
+ 125   1              isd1700_Npar_comm(ISD1700_DEVID,3);   
+ 126   1              ISD_SS=1;
+ 127   1              ISD_COMM_RAM_C[2]=ISD_COMM_RAM_C[2]&0xf8; 
+ 128   1              seril_back_sate(3);
+ 129   1      }
+ 130          
+ 131          // 播放当前语音
+ 132          void  spi_play(void)
+ 133          {   
+ 134   1              ISD_SS=0;
+ 135   1              isd1700_Npar_comm(ISD1700_PLAY|ISD_LED,2);    
+ 136   1              ISD_SS=1;
+ 137   1      }
+ 138          
+ 139          // 录音函数
+ 140          void spi_rec (void)
+ 141          {
+ 142   1              ISD_SS=0;
+ 143   1              isd1700_Npar_comm(ISD1700_REC|ISD_LED,2);      
+ 144   1              ISD_SS=1;
+ 145   1              ISD_COMM_RAM_C[0]=ISD1700_REC ;
+ 146   1              seril_back_sate(1);
+ 147   1      }
+ 148          // 擦除当前
+ 149          void spi_erase (void)
+ 150          {
+ 151   1              ISD_SS=0;
+ 152   1              isd1700_Npar_comm(ISD1700_ERASE|ISD_LED,2);      
+ 153   1              ISD_SS=1;
+ 154   1      }
+ 155          // 擦除全部
+ 156          void spi_G_ERASE (void) 
+ 157          { 
+ 158   1              ISD_SS=0;
+ 159   1              isd1700_Npar_comm(ISD1700_G_ERASE|ISD_LED,2);    
+ 160   1              ISD_SS=1;
+ 161   1      }
+ 162          // 下一段语音
+ 163          void spi_fwd (void)
+ 164          {
+ 165   1              ISD_SS=0;
+ 166   1              isd1700_Npar_comm(ISD1700_FWD,2);      
+ 167   1              ISD_SS=1;
+ 168   1      }
+ 169          
+ 170          // 写APC寄存器
+ 171          void  spi_wr_apc2(void)
+ 172          {
+ 173   1              ISD_SS=0;
+ 174   1              isd1700_par2_comm(ISD1700_WR_APC2, 0x0400);
+ 175   1              ISD_SS=1;
+ 176   1      }
+ 177          
+ 178          // 串口返回函数
+ 179          void seril_back_sate(uchar byte_number)
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 4   
+
+ 180          {
+ 181   1              uchar sate_temp;
+ 182   1              rest_isd_comm_ptr();
+ 183   1              sate_temp=0;
+ 184   1              do{
+ 185   2                      SBUF=*back_data_ptr++;
+ 186   2                      while(!TI);
+ 187   2                      TI=0;
+ 188   2                }while(++sate_temp<byte_number);
+ 189   1      }
+ 190          
+ 191          // 指针复位
+ 192          void rest_isd_comm_ptr(void)
+ 193          {
+ 194   1              isd_comm_ptr=ISD_COMM_RAM;
+ 195   1              back_data_ptr=ISD_COMM_RAM_C; 
+ 196   1      }
+ 197          
+ 198          // 发送命令
+ 199          void isd1700_Npar_comm (uchar comm_par,comm_byte_count)
+ 200          {   
+ 201   1              uchar i;
+ 202   1              i=0;
+ 203   1              ISD_COMM_RAM[0]=comm_par;
+ 204   1              isd_comm_ptr=&ISD_COMM_RAM[1];
+ 205   1              do{ 
+ 206   2              *isd_comm_ptr++=NULL;
+ 207   2              }while(++i<comm_byte_count-1);
+ 208   1      
+ 209   1              rest_isd_comm_ptr();             
+ 210   1              i=0;
+ 211   1              do{
+ 212   2              *back_data_ptr++=T_R_comm_byte(*isd_comm_ptr++);
+ 213   2              i++;
+ 214   2              }while(i<comm_byte_count);
+ 215   1      }
+ 216          
+ 217          // 发送命令2
+ 218          void isd1700_par2_comm(uchar comm_par, uint data_par)
+ 219          {
+ 220   1              uchar i;
+ 221   1              ISD_COMM_RAM[0]=comm_par;
+ 222   1              ISD_COMM_RAM[1]=data_par;
+ 223   1              ISD_COMM_RAM[2]=data_par>>8;         
+ 224   1              rest_isd_comm_ptr();             
+ 225   1          i=0;
+ 226   1          do{
+ 227   2                      *back_data_ptr++=T_R_comm_byte(*isd_comm_ptr++);
+ 228   2                      i++;
+ 229   2                }while(i<3);
+ 230   1      }
+ 231          
+ 232          // 发送7个字节
+ 233          void isd1700_7byte_comm(uchar comm_par, uint star_addr, uint end_addr)
+ 234          {
+ 235   1              uchar i;
+ 236   1              ISD_COMM_RAM[0]=comm_par;
+ 237   1              ISD_COMM_RAM[1]=NULL;
+ 238   1              ISD_COMM_RAM[2]=star_addr;
+ 239   1              ISD_COMM_RAM[3]=star_addr>>8;
+ 240   1              ISD_COMM_RAM[4]=end_addr;
+ 241   1              ISD_COMM_RAM[5]=end_addr>>8;
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 5   
+
+ 242   1              ISD_COMM_RAM[6]=NULL;
+ 243   1              rest_isd_comm_ptr();             
+ 244   1              i=0;
+ 245   1              do{
+ 246   2                      *back_data_ptr++=T_R_comm_byte(*isd_comm_ptr++);
+ 247   2                      i++;
+ 248   2                }while(i<=7);
+ 249   1      }
+ 250          
+ 251          // SPI通信函数
+ 252          uchar T_R_comm_byte( uchar comm_data )
+ 253          {
+ 254   1              uchar bit_nuber;
+ 255   1              uchar temp;
+ 256   1              bit_nuber=0;
+ 257   1              temp=0;
+ 258   1              do{
+ 259   2              ISD_SCLK=0;
+ 260   2              delay(1);
+ 261   2              if((comm_data>>bit_nuber&0x01)!=0) 
+ 262   2              {ISD_MOSI=1;}
+ 263   2              else
+ 264   2              {ISD_MOSI=0;}
+ 265   2              if(ISD_MISO)
+ 266   2              {temp=(temp>>1)|0x80;}
+ 267   2              else
+ 268   2              {temp=temp>>1;}
+ 269   2              ISD_SCLK=1;
+ 270   2              delay(1);
+ 271   2                               
+ 272   2              }while(++bit_nuber<=7);
+ 273   1              ISD_MOSI=0;
+ 274   1              return (temp);
+ 275   1      }
+ 276          
+ 277          // 短延时
+ 278          void delay(int x)
+ 279          {  
+ 280   1              uchar i;
+ 281   1              for(; x>=1; x--)
+ 282   1              {for(;i<=20;i++);}
+ 283   1      }
+ 284          
+ 285          // 播放指定语音段函数
+ 286          void PlaySoundTick(char soundtick)
+ 287          {
+ 288   1              ISD_SS=0;
+ 289   1              switch(soundtick)
+ 290   1              {  
+ 291   2                      case 0:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_0A, sound_0B); }break;
+ 292   2                      case 1:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_1A, sound_1B); }break;
+ 293   2                  case 2:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_2A, sound_2B); }break;
+ 294   2                  case 3:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_3A, sound_3B); }break;
+ 295   2                  case 4:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_4A, sound_4B); }break;
+ 296   2                  case 5:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_5A, sound_5B); }break;
+ 297   2                  case 6:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_6A, sound_6B); }break;
+ 298   2                      case 7:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_7A, sound_7B); }break;
+ 299   2                      case 8:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_8A, sound_8B); }break;
+ 300   2                  case 9:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_9A, sound_9B); }break;
+ 301   2                  case 10:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_10A, sound_10B); }break;
+ 302   2                  case 11:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_11A, sound_11B); }break;
+ 303   2                  case 12:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_12A, sound_12B); }break;
+C51 COMPILER V9.00   ISD1760                                                               04/16/2014 09:36:55 PAGE 6   
+
+ 304   2                  case 13:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_13A, sound_13B); }break;
+ 305   2                      case 14:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_14A, sound_14B); }break;
+ 306   2                  case 15:{ isd1700_7byte_comm(ISD1700_SET_PLAY|ISD_LED, sound_15A, sound_15B); }break;
+ 307   2                      /*
+ 308   2                      任意添加语音段，语音段始末地址（用上位机读出）填在SOUND.H文件中
+ 309   2                      */
+ 310   2                  default: break;
+ 311   2           }
+ 312   1              ISD_SS=1;
+ 313   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    761    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     17      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
